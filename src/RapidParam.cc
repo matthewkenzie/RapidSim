@@ -10,6 +10,7 @@ double RapidParam::eval() {
 
 	if(type_ == RapidParam::THETA || type_ == RapidParam::COSTHETA) return evalTheta();
 	if(type_ == RapidParam::MCORR) return evalCorrectedMass();
+  if(type_ == RapidParam::M2MISS) return evalMissingMassSq();
 	if(type_ == RapidParam::ProbNNmu || type_ == RapidParam::ProbNNpi || type_ == RapidParam::ProbNNe ||
 	   type_ == RapidParam::ProbNNk || type_ == RapidParam::ProbNNp) return evalPID();
 
@@ -83,6 +84,10 @@ double RapidParam::eval() {
 			std::cout << "WARNING in RapidParam::eval : parameter type " << type_ << " cannot be used with a single momentum." << std::endl
 				  << "                              returning 0." << std::endl;
 			break;
+		case RapidParam::M2MISS:
+			std::cout << "WARNING in RapidParam::eval : parameter type " << type_ << " cannot be used with a single momentum." << std::endl
+				  << "                              returning 0." << std::endl;
+			break;
 		default:
 			std::cout << "WARNING in RapidParam::eval : unknown parameter type " << type_ << std::endl
 				  << "                              returning 0." << std::endl;
@@ -151,6 +156,8 @@ bool RapidParam::canBeSmeared() {
 			return true;
 		case RapidParam::MCORR:
 			return true;
+    case RapidParam::M2MISS:
+      return true;
 		case RapidParam::UNKNOWN:
 			return true;
 	}
@@ -217,6 +224,8 @@ bool RapidParam::canBeTrue() {
 			return true;
 		case RapidParam::MCORR:
 			return true;
+    case RapidParam::M2MISS:
+      return true;
 		case RapidParam::UNKNOWN:
 			return true;
 	}
@@ -273,6 +282,24 @@ double RapidParam::evalCorrectedMass() {
 	double mCorr = TMath::Sqrt( mVis2 + pTran*pTran ) + pTran;
 
 	return mCorr;
+}
+
+double RapidParam::evalMissingMassSq() {
+
+	TLorentzVector momS, momT;
+
+	//load the true (inc. invisible) and smeared momenta
+	for(unsigned int i=0; i<particles_.size(); ++i) {
+		momT += particles_[i]->getP();
+		momS += particles_[i]->getPSmeared();
+	}
+
+	//invariant masses of the visible daughters and the parent as well as the missing mass
+	double mVis2 = momS.M2();
+	double mPar2 = momT.M2();
+	double mMiss2 = mPar2 - mVis2;
+
+	return mMiss2;
 }
 
 double RapidParam::evalTheta() {
@@ -372,6 +399,8 @@ TString RapidParam::typeName() {
 			return "costheta";
 		case RapidParam::MCORR:
 			return "Mcorr";
+    case RapidParam::M2MISS:
+      return "M2miss";
 		case RapidParam::ProbNNmu:
 			return "ProbNNmu";
 		case RapidParam::ProbNNpi:
@@ -436,6 +465,8 @@ RapidParam::ParamType RapidParam::typeFromString(TString str) {
 		return RapidParam::COSTHETA;
 	} else if(str=="Mcorr") {
 		return RapidParam::MCORR;
+  } else if(str=="M2miss") {
+    return RapidParam::M2MISS;
 	} else if(str=="ProbNNmu") {
 		return RapidParam::ProbNNmu;
 	} else if(str=="ProbNNpi") {
@@ -497,6 +528,10 @@ void RapidParam::setDefaultMinMax(const std::vector<RapidParticle*>& parts, doub
 			min = 0.;
 			break;
 		case RapidParam::MCORR:
+			setMassMinMax(parts,min,max);
+			min = -max;
+			break;
+		case RapidParam::M2MISS:
 			setMassMinMax(parts,min,max);
 			min = -max;
 			break;

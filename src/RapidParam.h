@@ -37,6 +37,7 @@ class RapidParam {
 			THETA,    //angle between particles
 			COSTHETA, //cosine of angle between particles
 			MCORR,    //corrected mass
+      M2MISS,   //missing mass squared
 			ProbNNmu, // muon particle id
 			ProbNNe,  // electron particle id
 			ProbNNpi, // pion particle id
@@ -93,6 +94,7 @@ class RapidParam {
 
 	private:
 		double evalCorrectedMass();
+    double evalMissingMassSq();
 		double evalTheta();
 		double evalPID();
 

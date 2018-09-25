@@ -89,15 +89,17 @@ bool RapidConfig::load(TString fileName) {
 	if(!loadDecay()) return false;
 	if(!loadConfig()) return false;
 
-	//automatically add the corrected mass variable if we have any invisible particles
+	//automatically add the corrected mass variable and missing mass if we have any invisible particles
 	for(unsigned int i=0; i<parts_.size(); ++i) {
 		if(parts_[i]->invisible()) {
 			std::cout << "INFO in RapidConfig::load : invisible daughter found." << std::endl
-				  << "                            Adding corrected mass variable for parent particle." << std::endl;
+				  << "                            Adding corrected mass and missing mass variable for parent particle." << std::endl;
 			std::vector<int> mother;
 			mother.push_back(0);
 			RapidParam* param = new RapidParam("MCorr", RapidParam::MCORR, parts_[0], false);
 			params_.push_back(param);
+      RapidParam* param2 = new RapidParam("M2miss", RapidParam::M2MISS, parts_[0], false);
+      params_.push_back(param2);
 			break;
 		}
 	}
